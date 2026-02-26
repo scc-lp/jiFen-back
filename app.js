@@ -14,7 +14,9 @@ const roomRoutes = require('./routes/roomRoutes');
 const app = express();
 
 // 中间件
-app.use(cors());
+app.use(cors({
+  origin: '*' // 或者直接用 '*' 允许所有
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
