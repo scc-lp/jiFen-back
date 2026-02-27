@@ -105,50 +105,25 @@ class Room {
   // 获取用户的房间列表
   static async getUserRooms(userId, page = 1, pageSize = 10) {
     try {
-      // 获取用户创建的房间
-      const [createdRooms] = await pool.execute(
-        'SELECT * FROM rooms WHERE creator_id = ?',
-        [userId]
+      // 单次查询获取所有相关房间，减少数据库查询次数
+      const [rooms] = await pool.execute(
+        `SELECT DISTINCT r.* FROM rooms r
+         LEFT JOIN players p ON r.id = p.room_id
+         WHERE r.creator_id = ? OR (p.user_id = ? AND r.creator_id != ?)
+         ORDER BY 
+           CASE WHEN r.status = 'active' THEN 0 ELSE 1 END, 
+           r.created_at DESC`,
+        [userId, userId, userId]
       );
-      
-      // 获取用户加入的房间
-      const [joinedRooms] = await pool.execute(
-        `SELECT r.* FROM rooms r
-         JOIN players p ON r.id = p.room_id
-         WHERE p.user_id = ? AND r.creator_id != ?`,
-        [userId, userId]
-      );
-      
-      // 合并并去重
-      const allRooms = [...createdRooms, ...joinedRooms];
-      const uniqueRooms = [];
-      const seenIds = new Set();
-      
-      for (const room of allRooms) {
-        if (!seenIds.has(room.id)) {
-          seenIds.add(room.id);
-          uniqueRooms.push(room);
-        }
-      }
-      
-      // 排序：首先按照是否为进行中排序，进行中排在前面，已结束排在后面
-      // 其次按照房间的创建时间进行排序，最新的排在前面
-      uniqueRooms.sort((a, b) => {
-        // 首先比较状态
-        if (a.status === 'active' && b.status === 'ended') return -1;
-        if (a.status === 'ended' && b.status === 'active') return 1;
-        // 状态相同，比较创建时间
-        return new Date(b.created_at) - new Date(a.created_at);
-      });
       
       // 分页
       const startIndex = (page - 1) * pageSize;
       const endIndex = startIndex + pageSize;
-      const paginatedRooms = uniqueRooms.slice(startIndex, endIndex);
+      const paginatedRooms = rooms.slice(startIndex, endIndex);
       
       return {
         rooms: paginatedRooms,
-        total: uniqueRooms.length,
+        total: rooms.length,
         page,
         pageSize
       };

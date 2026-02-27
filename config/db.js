@@ -12,17 +12,21 @@ const dbConfig = NODE_ENV === 'production' ? {
   password: process.env.PROD_DB_PASSWORD,
   database: process.env.PROD_DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 20,
   queueLimit: 0,
-  ssl: { minVersion: 'TLSv1.2', rejectUnauthorized: true } // TiDB 必须开启 SSL
+  ssl: { minVersion: 'TLSv1.2', rejectUnauthorized: true }, // TiDB 必须开启 SSL
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 30000
 } : {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  connectionLimit: 20,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 30000
 };
 
 // 创建数据库连接池

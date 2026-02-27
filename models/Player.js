@@ -8,16 +8,18 @@ class Player {
         `SELECT p.*, 
          u.username as user_username, 
          u.avatar as user_avatar,
-         COALESCE((SELECT s.current_score 
-          FROM scores s 
-          WHERE s.player_id = p.id 
-          ORDER BY s.created_at DESC 
-          LIMIT 1), 0) as score
+         COALESCE(s.current_score, 0) as score
          FROM players p 
          LEFT JOIN users u ON p.user_id = u.id
+         LEFT JOIN (
+           SELECT player_id, current_score, 
+                  ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY created_at DESC) as rn
+           FROM scores
+           WHERE room_id = ?
+         ) s ON p.id = s.player_id AND s.rn = 1
          WHERE p.room_id = ? AND (p.status IS NULL OR p.status = ?) 
          ORDER BY p.created_at ASC`,
-        [roomId, 'active']
+        [roomId, roomId, 'active']
       );
       
       // 处理玩家名称和头像
