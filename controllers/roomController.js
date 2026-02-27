@@ -1,5 +1,6 @@
 const Room = require('../models/Room');
 const socketManager = require('../config/socket');
+const { clearCache } = require('../middlewares/cache');
 
 class RoomController {
   // 创建房间
@@ -15,6 +16,9 @@ class RoomController {
       
       // 创建房间
       const room = await Room.createRoom(userId, room_name);
+      
+      // 清除房间相关缓存
+      clearCache('/rooms');
       
       res.status(201).json({
         success: true,
@@ -62,6 +66,10 @@ class RoomController {
       } catch (error) {
         console.error('Socket.io emit error:', error);
       }
+      
+      // 清除房间相关缓存
+      clearCache('/rooms');
+      clearCache('/players');
       
       res.status(200).json({
         success: true,
@@ -139,6 +147,11 @@ class RoomController {
       } catch (error) {
         console.error('Socket.io emit error:', error);
       }
+      
+      // 清除房间相关缓存
+      clearCache('/rooms');
+      clearCache('/players');
+      clearCache('/scores');
       
       res.status(200).json({
         success: true,

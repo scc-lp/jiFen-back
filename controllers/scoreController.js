@@ -1,5 +1,6 @@
 const Score = require('../models/Score');
 const socketManager = require('../config/socket');
+const { clearCache } = require('../middlewares/cache');
 
 class ScoreController {
   // 更新玩家分数
@@ -25,6 +26,10 @@ class ScoreController {
       } catch (error) {
         console.error('Socket.io emit error:', error);
       }
+      
+      // 清除分数相关缓存
+      clearCache('/scores');
+      clearCache('/players');
       
       res.status(201).json({
         success: true,

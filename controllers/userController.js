@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { generateToken } = require('../middlewares/auth');
 const socketManager = require('../config/socket');
+const { clearCache } = require('../middlewares/cache');
 
 class UserController {
   // 用户注册
@@ -112,6 +113,9 @@ class UserController {
       } catch (error) {
         console.error('Socket.io emit error:', error);
       }
+      
+      // 清除用户相关缓存
+      clearCache('/users');
       
       res.status(200).json({
         success: true,

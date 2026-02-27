@@ -1,5 +1,6 @@
 const Player = require('../models/Player');
 const socketManager = require('../config/socket');
+const { clearCache } = require('../middlewares/cache');
 
 class PlayerController {
   // 获取玩家列表
@@ -52,6 +53,9 @@ class PlayerController {
         console.error('Socket.io emit error:', error);
       }
       
+      // 清除玩家相关缓存
+      clearCache('/players');
+      
       res.status(201).json({
         success: true,
         message: '添加玩家成功',
@@ -74,6 +78,9 @@ class PlayerController {
       }
       
       const player = await Player.updatePlayer(playerId, player_name);
+      
+      // 清除玩家相关缓存
+      clearCache('/players');
       
       res.status(200).json({
         success: true,
@@ -110,6 +117,9 @@ class PlayerController {
       } catch (error) {
         console.error('Socket.io emit error:', error);
       }
+      
+      // 清除玩家相关缓存
+      clearCache('/players');
       
       res.status(200).json({
         success: true,
