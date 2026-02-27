@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { generateToken } = require('../middlewares/auth');
+const socketManager = require('../config/socket');
 
 class UserController {
   // 用户注册
@@ -99,6 +100,19 @@ class UserController {
       // 移除密码字段
       const { password: _, ...userInfo } = updatedUser;
       
+      // 广播用户信息更新事件
+      try {
+        const io = socketManager.getIO();
+        io.emit('userUpdated', {
+          user_id: userId,
+          username: userInfo.username,
+          avatar: userInfo.avatar
+        });
+        console.log('用户信息更新事件广播成功');
+      } catch (error) {
+        console.error('Socket.io emit error:', error);
+      }
+      
       res.status(200).json({
         success: true,
         message: '更新成功',
@@ -106,6 +120,35 @@ class UserController {
       });
     } catch (error) {
       res.status(400).json({ success: false, message: error.message });
+    }
+  }
+  
+  // 根据手机号获取用户信息
+  static async getUserByPhone(req, res) {
+    try {
+      const { phone } = req.params;
+      
+      // 验证手机号格式
+      const phoneRegex = /^1[3-9]\d{9}$/;
+      if (!phoneRegex.test(phone)) {
+        return res.status(400).json({ success: false, message: '手机号格式不正确' });
+      }
+      
+      const user = await User.findByPhone(phone);
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: '用户不存在' });
+      }
+      
+      // 移除密码字段
+      const { password, ...userInfo } = user;
+      
+      res.status(200).json({
+        success: true,
+        data: userInfo
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 }

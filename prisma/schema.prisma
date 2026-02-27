@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model history {
+  id              Int               @id @default(autoincrement())
+  room_id         Int
+  room_code       String            @db.VarChar(10)
+  room_name       String            @db.VarChar(100)
+  creator_id      Int
+  ended_at        DateTime?         @default(now()) @db.Timestamp(0)
+  total_players   Int
+  users           users             @relation(fields: [creator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "history_ibfk_1")
+  history_players history_players[]
+
+  @@index([creator_id], map: "creator_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model history_players {
+  id          Int     @id @default(autoincrement())
+  history_id  Int
+  player_name String  @db.VarChar(50)
+  final_score Int
+  history     history @relation(fields: [history_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "history_players_ibfk_1")
+
+  @@index([history_id], map: "history_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model players {
+  id                               Int             @id @default(autoincrement())
+  room_id                          Int
+  user_id                          Int?
+  player_name                      String          @db.VarChar(50)
+  is_creator                       Boolean?        @default(false)
+  created_at                       DateTime?       @default(now()) @db.Timestamp(0)
+  status                           players_status? @default(active)
+  rooms                            rooms           @relation(fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "players_ibfk_1")
+  users                            users?          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "players_ibfk_2")
+  scores_scores_giver_idToplayers  scores[]        @relation("scores_giver_idToplayers")
+  scores_scores_player_idToplayers scores[]        @relation("scores_player_idToplayers")
+
+  @@index([room_id], map: "room_id")
+  @@index([user_id], map: "user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model rooms {
+  id         Int           @id @default(autoincrement())
+  room_code  String        @unique(map: "room_code") @db.VarChar(10)
+  creator_id Int
+  room_name  String        @db.VarChar(100)
+  status     rooms_status? @default(active)
+  created_at DateTime?     @default(now()) @db.Timestamp(0)
+  ended_at   DateTime?     @db.Timestamp(0)
+  players    players[]
+  users      users         @relation(fields: [creator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "rooms_ibfk_1")
+  scores     scores[]
+
+  @@index([creator_id], map: "creator_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model scores {
+  id                                Int       @id @default(autoincrement())
+  room_id                           Int
+  player_id                         Int
+  score_change                      Int
+  current_score                     Int
+  description                       String?   @db.VarChar(255)
+  created_at                        DateTime? @default(now()) @db.Timestamp(0)
+  giver_id                          Int?
+  players_scores_giver_idToplayers  players?  @relation("scores_giver_idToplayers", fields: [giver_id], references: [id], onUpdate: NoAction, map: "fk_scores_giver")
+  rooms                             rooms     @relation(fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "scores_ibfk_1")
+  players_scores_player_idToplayers players   @relation("scores_player_idToplayers", fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "scores_ibfk_2")
+
+  @@index([giver_id], map: "fk_scores_giver")
+  @@index([player_id], map: "player_id")
+  @@index([room_id], map: "room_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  id         Int       @id @default(autoincrement())
+  phone      String    @unique(map: "phone") @db.VarChar(11)
+  username   String    @db.VarChar(50)
+  password   String    @db.VarChar(100)
+  avatar     String?   @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+  history    history[]
+  players    players[]
+  rooms      rooms[]
+}
+
+enum rooms_status {
+  active
+  ended
+}
+
+enum players_status {
+  active
+  left
+}

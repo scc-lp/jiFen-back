@@ -6,17 +6,26 @@ class Player {
     try {
       const [players] = await pool.execute(
         `SELECT p.*, 
+         u.username as user_username, 
+         u.avatar as user_avatar,
          COALESCE((SELECT s.current_score 
           FROM scores s 
           WHERE s.player_id = p.id 
           ORDER BY s.created_at DESC 
           LIMIT 1), 0) as score
          FROM players p 
+         LEFT JOIN users u ON p.user_id = u.id
          WHERE p.room_id = ? AND (p.status IS NULL OR p.status = ?) 
          ORDER BY p.created_at ASC`,
         [roomId, 'active']
       );
-      return players;
+      
+      // 处理玩家名称和头像
+      return players.map(player => ({
+        ...player,
+        player_name: player.user_username || player.player_name,
+        avatar: player.user_avatar
+      }));
     } catch (error) {
       throw error;
     }
@@ -60,17 +69,25 @@ class Player {
       // 获取更新后的玩家信息
       const [players] = await pool.execute(
         `SELECT p.*, 
+         u.username as user_username, 
+         u.avatar as user_avatar,
          COALESCE((SELECT s.current_score 
           FROM scores s 
           WHERE s.player_id = p.id 
           ORDER BY s.created_at DESC 
           LIMIT 1), 0) as score
          FROM players p 
+         LEFT JOIN users u ON p.user_id = u.id
          WHERE p.id = ?`,
         [playerId]
       );
       
-      return players[0];
+      const player = players[0];
+      return {
+        ...player,
+        player_name: player.user_username || player.player_name,
+        avatar: player.user_avatar
+      };
     } catch (error) {
       throw error;
     }
@@ -100,17 +117,29 @@ class Player {
     try {
       const [players] = await pool.execute(
         `SELECT p.*, 
+         u.username as user_username, 
+         u.avatar as user_avatar,
          COALESCE((SELECT s.current_score 
           FROM scores s 
           WHERE s.player_id = p.id 
           ORDER BY s.created_at DESC 
           LIMIT 1), 0) as score
          FROM players p 
+         LEFT JOIN users u ON p.user_id = u.id
          WHERE p.id = ?`,
         [playerId]
       );
       
-      return players.length > 0 ? players[0] : null;
+      if (players.length === 0) {
+        return null;
+      }
+      
+      const player = players[0];
+      return {
+        ...player,
+        player_name: player.user_username || player.player_name,
+        avatar: player.user_avatar
+      };
     } catch (error) {
       throw error;
     }
