@@ -64,7 +64,7 @@ class UserController {
         }
       });
     } catch (error) {
-      res.status(401).json({ success: false, message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
   }
   
@@ -153,6 +153,28 @@ class UserController {
       });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
+    }
+  }
+  
+  // 重置密码
+  static async resetPassword(req, res) {
+    try {
+      const { phone, username, password } = req.body;
+      
+      // 验证参数
+      if (!phone || !username || !password) {
+        return res.status(400).json({ success: false, message: '手机号、用户名和新密码不能为空' });
+      }
+      
+      // 重置密码
+      await User.resetPassword(phone, username, password);
+      
+      res.status(200).json({
+        success: true,
+        message: '密码重置成功'
+      });
+    } catch (error) {
+      res.status(400).json({ success: false, message: error.message });
     }
   }
 }

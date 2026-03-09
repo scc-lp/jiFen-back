@@ -133,6 +133,37 @@ class User {
       throw error;
     }
   }
+  
+  // 重置密码
+  static async resetPassword(phone, username, newPassword) {
+    try {
+      // 查找用户
+      const [users] = await pool.execute(
+        'SELECT * FROM users WHERE phone = ? AND username = ?',
+        [phone, username]
+      );
+      
+      if (users.length === 0) {
+        throw new Error('手机号或用户名不正确');
+      }
+      
+      const user = users[0];
+      
+      // 加密新密码
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      
+      // 更新密码
+      await pool.execute(
+        'UPDATE users SET password = ? WHERE id = ?',
+        [hashedPassword, user.id]
+      );
+      
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = User;

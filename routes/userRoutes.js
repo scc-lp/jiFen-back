@@ -19,4 +19,7 @@ router.put('/profile', verifyToken, UserController.updateProfile);
 // 根据手机号获取用户信息
 router.get('/by-phone/:phone', UserController.getUserByPhone);
 
+// 重置密码
+router.post('/reset-password', UserController.resetPassword);
+
 module.exports = router;
