@@ -3,10 +3,10 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 // 检测当前环境
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const NODE_ENV = process.env.NODE_ENV || 'dev';
 
 // 根据环境选择数据库配置
-const dbConfig = NODE_ENV === 'production' ? {
+const dbConfig = NODE_ENV === 'prod' ? {
   host: process.env.PROD_DB_HOST,
   user: process.env.PROD_DB_USER,
   password: process.env.PROD_DB_PASSWORD,
@@ -14,7 +14,7 @@ const dbConfig = NODE_ENV === 'production' ? {
   waitForConnections: true,
   connectionLimit: 20,
   queueLimit: 0,
-  ssl: { minVersion: 'TLSv1.2', rejectUnauthorized: true }, // TiDB 必须开启 SSL
+  ssl: { minVersion: 'TLSv1.2', rejectUnauthorized: false }, // TiDB 必须开启 SSL
   enableKeepAlive: true,
   keepAliveInitialDelay: 30000
 } : {
