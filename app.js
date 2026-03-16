@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -9,6 +10,7 @@ require('dotenv').config();
 // 导入路由
 const userRoutes = require('./routes/userRoutes');
 const roomRoutes = require('./routes/roomRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 // 创建Express应用
 const app = express();
@@ -54,6 +56,7 @@ app.use('/users', userRoutes);
 app.use('/rooms', roomRoutes);
 app.use('/players', playerRoutes);
 app.use('/scores', scoreRoutes);
+app.use('/chat', chatRoutes);
 
 // 健康检查
 app.get('/health', (req, res) => {
